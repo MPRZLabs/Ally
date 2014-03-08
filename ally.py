@@ -22,11 +22,12 @@
 #  
 #  
 
-import sys, mpi
+import sys, mpi, os, string, logging
 
-m = mpi.MPi("Aleja Gwiazd")
+logging.basicConfig(level=logging.DEBUG)
 
 def parse(f):
+    logging.debug("Parsing %s" % f)
     for line in open(f, "r"):
         if line.startswith("start"):
             print(m.start())
@@ -42,17 +43,22 @@ def parse(f):
             print(m.include(line[8:len(line)-1]), True)
         if line.startswith("wiersz "):
             print(m.poem(line[7:len(line)-1]))
-    return 0
 
 def printhelp():
     print "You need to specify filename as an argument"
 
 def main():
-    try:
-        return parse(sys.argv[1])
-    except IndexError:
+    global c
+    if len(sys.argv) < 2:
         printhelp()
         return 1
+    else:
+        if os.path.isdir(sys.argv[1]):
+            cfgpth = string.rstrip(sys.argv[1], os.pathsep) + os.pathsep + ".allyconfig"
+            if os.path.isfile(cfgpth):
+                m = mpi.MPi(cfgpth)
+                for page in m.pages:
+                    parse(m.path[0:len(m.path)-12] + os.pathsep + page)
 
 if __name__ == '__main__':
     main()

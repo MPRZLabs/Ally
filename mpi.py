@@ -25,17 +25,34 @@
 from string import Template
 
 class CDNData(object):
-    def __init__(self):
-        self.bootstrapcss = "http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"
-        self.bootstrapjs = "http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"
-        self.jqueryjs = "http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"
+    def __init__(self, Local):
+        self.bootstrapcss = "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"
+        self.bootstrapjs = "//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"
+        self.jqueryjs = "//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"
+        if Local:
+            self.bootstrapcss = "http:" + self.bootstrapcss
+            self.bootstrapjs = "http:" + self.bootstrapjs
+            self.jqueryjs = "http:" + self.jqueryjs
         self.commoncss = "css/_global.css"
         self.incassets = "assets/"
+        
 class MPi(object):
-    def __init__(self, sitetitle):
+    def __init__(self, Path):
+        self.path = Path
+        f = open(Path, "r")
+        self.pages = []
+        self.local = False
+        self.stitle = None
+        for line in f:
+            if line.startswith("lokalny "):
+                if line[8:len(line)-1] == "1":
+                    self.local = True
+            if line.startswith("strona "):
+                self.pages.append(line[7:len(line)-1])
+            if line.startswith("tytuł "):
+                self.stitle = line[6:len(line)-1]
         self.footnotes = ""
-        self.stitle = sitetitle
-        self.cdn = CDNData()
+        self.cdn = CDNData(self.local)
     def start(self):
         return "<!DOCTYPE html><html>"
     def title(self, Title):
