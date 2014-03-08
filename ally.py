@@ -31,12 +31,17 @@ def parse(f):
         if line.startswith("start"):
             print(m.start())
         if line.startswith("tytuł "):
-            tehpagetitle = line[7:len(line)-1]
-            m.title(tehpagetitle)
+            m.title(line[7:len(line)-1])
         if line.startswith("góra"):
             print(m.header())
         if line.startswith("koniec"):
             print(m.end())
+        if line.startswith("import "):
+            print(m.include(line[7:len(line)-1]))
+        if line.startswith("import! "):
+            print(m.include(line[8:len(line)-1]), True)
+        if line.startswith("wiersz "):
+            print(m.poem(line[7:len(line)-1]))
     return 0
 
 def printhelp():

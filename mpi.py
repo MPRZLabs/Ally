@@ -30,6 +30,7 @@ class CDNData(object):
         self.bootstrapjs = "//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"
         self.jqueryjs = "//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"
         self.commoncss = "css/_global.css"
+        self.incassets = "assets/"
 class MPi(object):
     def __init__(self, sitetitle):
         self.footnotes = ""
@@ -49,5 +50,21 @@ class MPi(object):
         <script src="$jqueryjs"></script>
         <script src="$bootstrapjs"></script>
         </head><body>""").substitute({'stitle':self.stitle,'commoncss':self.cdn.commoncss,'ptitle':self.ptitle,'bootstrapcss':self.cdn.bootstrapcss,'bootstrapjs':self.cdn.bootstrapjs,'jqueryjs':self.cdn.jqueryjs, 'pagecss':"css/" + self.ptitle + ".css"})
+    def include(self, Title, Br=False):
+        fl = open(self.cdn.incassets + Title + ".inc", "r")
+        fll = ""
+        for line in fl:
+            fll = fll+line
+            if Br:
+                fll = fll+"<br />"
+        return fll
+    def poem(self, Title):
+        fl = open(self.cdn.incassets + Title + ".poem", "r")
+        fll = Template("""<div class="modal fade" id="modal_$title" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button><h4 class="modal-title"><span class="glyphicon glyphicon-book"></span>$title</h4></div><div class="modal-body">""").substitute({'title':Title})
+        for line in fl:
+            fll = fll+line+"<br />"
+        fll = fll+"</div></div></div></div>"
+        self.footnotes = self.footnotes + fll
+        return Template("""<button data-toggle="modal" data-target="#modal_$title" class="btn btn-info"><span class="glyphicon glyphicon-book"></span>$title</button>""").substitute({'title':Title});
     def end(self):
         return self.footnotes + "</body></html>"
