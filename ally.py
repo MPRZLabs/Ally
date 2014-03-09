@@ -48,17 +48,22 @@ def printhelp():
     print "You need to specify filename as an argument"
 
 def main():
-    global c
+    global m
     if len(sys.argv) < 2:
         printhelp()
         return 1
     else:
         if os.path.isdir(sys.argv[1]):
-            cfgpth = string.rstrip(sys.argv[1], os.pathsep) + os.pathsep + ".allyconfig"
+            cfgpth = string.rstrip(sys.argv[1], "/") + "/" + ".allyconfig"
             if os.path.isfile(cfgpth):
                 m = mpi.MPi(cfgpth)
                 for page in m.pages:
-                    parse(m.path[0:len(m.path)-12] + os.pathsep + page)
-
+                    parse(m.path[0:len(m.path)-12] + "/" + page + ".ally")
+            else:
+                logging.error("Config file is not a file: %s" % cfgpth)
+                return 3
+        else:
+            logging.error("Not a directory")
+            return 2
 if __name__ == '__main__':
     main()
