@@ -54,6 +54,12 @@ def parse(f):
             ret=ret+m.jumboend()
         if line.startswith("menu"):
             ret=ret+m.menu()
+        if line.startswith("karuzela( "):
+            ret=ret+m.caroustart(line.split(" ")[1])
+        if line.startswith(")karuzela"):
+            ret=ret+m.carouend()
+        if line.startswith("element "):
+            ret=ret+m.caroument(line.split(" ")[1], m.include(line.split(" ")[2][0:len(line.split(" ")[2])-1]))
     return ret
 
 def printhelp():

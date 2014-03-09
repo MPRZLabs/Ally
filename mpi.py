@@ -35,6 +35,9 @@ class CDNData(object):
             self.jqueryjs = "http:" + self.jqueryjs
         self.commoncss = "css/_global.css"
         self.incassets = "assets/"
+        self.carouselmode = False
+        self.carouselelements = 0
+        self.carouselid = None
         
 class MPi(object):
     def __init__(self, Path):
@@ -112,3 +115,37 @@ class MPi(object):
                 mn = mn+Template("""<li><a href="$title.html">$title</a></li>""").substitute({'title':page})
         mn = mn+"</ul></div></div></nav>"
         return mn
+    def caroustart(self, Id):
+        self.carouselmode = True
+        self.carouselelements = 0
+        self.carouselid = Id
+        return Template("""<div id="carousel-$cid" class="carousel slide" data-ride="carousel">
+        <div class="carousel-inner">""").substitute({'cid':self.carouselid})
+    def caroument(self, Pic, Imp=""):
+        self.carouselelements = self.carouselelements + 1
+        if Imp != "":
+            Imp = """<div class="carousel-caption">"""+Imp+"</div>"
+        if self.carouselelements == 1:
+            return Template("""<div class="item active"><img src="$image">$imdes</div>""").substitute({'image':Pic,'imdes':Imp})
+        else:
+            return Template("""<div class="item"><img src="$image">$imdes</div>""").substitute({'image':Pic,'imdes':Imp})
+    def carouend(self):
+        cnd = "</div>"
+        if self.carouselelements > 1:
+            cnd =cnd+Template("""<a class="left carousel-control" href="#carousel-$cid" data-slide="prev">
+            <span class="glyphicon glyphicon-chevron-left"></span>
+            </a>
+            <a class="right carousel-control" href="#carousel-$cid" data-slide="next">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+            </a>
+            <ol class="carousel-indicators">""").substitute({'cid':self.carouselid})
+            first=""" class="active" """
+            for num in range(self.carouselelements):
+                cnd=cnd+Template("""<li data-target="#carousel-$cid" data-slide-to="$nm" $ins></li>""").substitute({'cid':self.carouselid, 'nm':num,'ins':first})
+                first=""
+            cnd=cnd+"</ol>"
+        cnd=cnd+"</div>"
+        self.carouselmode = False
+        self.carouselelements = 0
+        self.carouselid = None
+        return cnd
