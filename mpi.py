@@ -40,7 +40,7 @@ class MPi(object):
     def __init__(self, Path):
         self.path = Path
         f = open(Path, "r")
-        self.pages = []
+        self.pages = ["index"]
         self.local = False
         self.stitle = None
         for line in f:
@@ -87,3 +87,28 @@ class MPi(object):
         rt = self.footnotes + "</body></html>"
         self.footnotes = ""
         return rt
+    def contstart(self):
+        return """<div class="container">"""
+    def contend(self):
+        return "</div>"
+    def jumbostart(self):
+        return """<div class="jumbotron">"""+self.contstart()
+    def jumboend(self):
+        return self.contend()+"</div>"
+    def menu(self):
+        mn = Template("""<nav class="navbar navbar-default" role="navigation">
+        <div class="container-fluid">
+        <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#menumenumenu-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="index.html">$stitle</a>
+        </div>
+        <div class="collapse navbar-collapse" id="menumenumenu-collapse">
+        <ul class="nav navbar-nav">""").substitute({'stitle':self.stitle})
+        for page in self.pages:
+            if page != "index":
+                mn = mn+Template("""<li><a href="$title.html">$title</a></li>""").substitute({'title':page})
+        mn = mn+"</ul></div></div></nav>"
+        return mn

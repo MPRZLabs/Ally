@@ -44,6 +44,16 @@ def parse(f):
             ret=ret+m.include(line[8:len(line)-1], True)
         if line.startswith("wiersz "):
             ret=ret+m.poem(line[7:len(line)-1])
+        if line.startswith("środek("):
+            ret=ret+m.contstart()
+        if line.startswith(")środek"):
+            ret=ret+m.contend()
+        if line.startswith("jumbo("):
+            ret=ret+m.jumbostart()
+        if line.startswith(")jumbo"):
+            ret=ret+m.jumboend()
+        if line.startswith("menu"):
+            ret=ret+m.menu()
     return ret
 
 def printhelp():
