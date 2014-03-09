@@ -84,4 +84,6 @@ class MPi(object):
         self.footnotes = self.footnotes + fll
         return Template("""<button data-toggle="modal" data-target="#modal_$title" class="btn btn-info"><span class="glyphicon glyphicon-book"></span> $title</button>""").substitute({'title':Title});
     def end(self):
-        return self.footnotes + "</body></html>"
+        rt = self.footnotes + "</body></html>"
+        self.footnotes = ""
+        return rt
