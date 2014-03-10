@@ -93,6 +93,12 @@ def main():
         Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
         httpd = SocketServer.TCPServer(("", PORT), Handler)
         print "serving at port", PORT
-        httpd.serve_forever()
+        notinted = True
+        while notinted:
+            try:
+                httpd.handle_request()
+            except KeyboardInterrupt:
+                notinted = False
+    return 0
 if __name__ == '__main__':
     main()
