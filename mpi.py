@@ -131,19 +131,19 @@ class MPi(object):
             return Template("""<div class="item"><img src="$image">$imdes</div>""").substitute({'image':Pic,'imdes':Imp})
     def carouend(self):
         cnd = "</div>"
-        if self.carouselelements > 1:
-            cnd =cnd+Template("""<a class="left carousel-control" href="#carousel-$cid" data-slide="prev">
-            <span class="glyphicon glyphicon-chevron-left"></span>
-            </a>
-            <a class="right carousel-control" href="#carousel-$cid" data-slide="next">
-            <span class="glyphicon glyphicon-chevron-right"></span>
-            </a>
-            <ol class="carousel-indicators">""").substitute({'cid':self.carouselid})
-            first=""" class="active" """
-            for num in range(self.carouselelements):
-                cnd=cnd+Template("""<li data-target="#carousel-$cid" data-slide-to="$nm" $ins></li>""").substitute({'cid':self.carouselid, 'nm':num,'ins':first})
-                first=""
-            cnd=cnd+"</ol>"
+#        if self.carouselelements > 1:
+#            cnd =cnd+Template("""<a class="left carousel-control" href="#carousel-$cid" data-slide="prev">
+#            <span class="glyphicon glyphicon-chevron-left"></span>
+#            </a>
+#            <a class="right carousel-control" href="#carousel-$cid" data-slide="next">
+#            <span class="glyphicon glyphicon-chevron-right"></span>
+#            </a>
+#            <ol class="carousel-indicators">""").substitute({'cid':self.carouselid})
+#            first=""" class="active" """
+#            for num in range(self.carouselelements):
+#                cnd=cnd+Template("""<li data-target="#carousel-$cid" data-slide-to="$nm" $ins></li>""").substitute({'cid':self.carouselid, 'nm':num,'ins':first})
+#                first=""
+#            cnd=cnd+"</ol>"
         cnd=cnd+"</div>"
         self.carouselmode = False
         self.carouselelements = 0
