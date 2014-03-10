@@ -2,6 +2,10 @@ start
 tytuł Start
 góra
 menu
+karuzela( intro
+element http://alejagwiazd.ijestfajnie.pl/assets/Kasia-carousel.png Kasiaintro
+element http://alejagwiazd.ijestfajnie.pl/assets/Misiek-carousel.png Misiekintro
+)karuzela
 środek(
 jumbo(
 import naczelny
