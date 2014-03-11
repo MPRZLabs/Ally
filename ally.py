@@ -26,6 +26,8 @@ import sys, mpi, os, string, logging, SimpleHTTPServer, SocketServer
 
 logging.basicConfig(level=logging.DEBUG)
 
+path = ""
+
 def parse(f):
     ret = ""
     logging.debug("Parsing %s" % f)
@@ -66,7 +68,7 @@ def printhelp():
     print "You need to specify filename as an argument"
 
 def main():
-    global m
+    global m, path
     if len(sys.argv) < 2:
         print("Specify action")
         return 1
@@ -76,12 +78,12 @@ def main():
         path = sys.argv[2]
     if sys.argv[1] == "build" or sys.argv[1] == "serve":
         if os.path.isdir(path):
-            cfgpth = string.rstrip(path, "/") + "/" + ".allyconfig"
-            if os.path.isfile(cfgpth):
+            cfgpth = string.rstrip(path, "/") + "/"
+            if os.path.isfile(cfgpth + ".allyconfig"):
                 m = mpi.MPi(cfgpth)
                 for page in m.pages:
-                    with open(m.path[0:len(m.path)-12] + "/" + page + ".html", "w") as target:
-                        target.write(parse(m.path[0:len(m.path)-12] + "/" + page + ".ally"))
+                    with open(m.path[0:len(m.path)-1] + "/" + page + ".html", "w") as target:
+                        target.write(parse(m.path[0:len(m.path)-1] + "/" + page + ".ally"))
             else:
                 logging.error("Config file is not a file: %s" % cfgpth)
                 return 3
@@ -89,6 +91,7 @@ def main():
             logging.error("Not a directory")
             return 2
     if sys.argv[1] == "serve":
+        os.chdir(path)
         PORT = 8000
         Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
         httpd = SocketServer.TCPServer(("", PORT), Handler)

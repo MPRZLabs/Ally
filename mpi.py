@@ -42,7 +42,7 @@ class CDNData(object):
 class MPi(object):
     def __init__(self, Path):
         self.path = Path
-        f = open(Path, "r")
+        f = open(Path + "/.allyconfig", "r")
         self.pages = ["index"]
         self.local = False
         self.stitle = None
@@ -71,7 +71,7 @@ class MPi(object):
         <script src="$bootstrapjs"></script>
         </head><body>""").substitute({'stitle':self.stitle,'commoncss':self.cdn.commoncss,'ptitle':self.ptitle,'bootstrapcss':self.cdn.bootstrapcss,'bootstrapjs':self.cdn.bootstrapjs,'jqueryjs':self.cdn.jqueryjs, 'pagecss':"css/" + self.ptitle + ".css"})
     def include(self, Title, Br=False):
-        fl = open(self.cdn.incassets + Title + ".inc", "r")
+        fl = open(self.path + self.cdn.incassets + Title + ".inc", "r")
         fll = ""
         for line in fl:
             fll = fll+line
@@ -79,7 +79,7 @@ class MPi(object):
                 fll = fll+"<br />"
         return fll
     def poem(self, Title):
-        fl = open(self.cdn.incassets + Title + ".poem", "r")
+        fl = open(self.path + self.cdn.incassets + Title + ".poem", "r")
         fll = Template("""<div class="modal fade" id="modal_$title" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button><h4 class="modal-title"><span class="glyphicon glyphicon-book"></span> $title</h4></div><div class="modal-body">""").substitute({'title':Title})
         for line in fl:
             fll = fll+line+"<br />"
