@@ -99,7 +99,7 @@ class MPi(object):
     def jumboend(self):
         return self.contend()+"</div>"
     def menu(self):
-        mn = Template("""<nav class="navbar navbar-default" role="navigation">
+        mn = Template("""<nav class="navbar navbar-fixed-top navbar-default" role="navigation">
         <div class="container-fluid">
         <div class="navbar-header">
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#menumenumenu-collapse">
