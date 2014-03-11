@@ -1,4 +1,4 @@
-<h2 class="paprotki">Udręczone paprotki <small>historia prawdziwa</small></h2>
+<h2 class="paprotki"><strong>Udręczone paprotki <small>historia prawdziwa</small></strong></h2>
 <p class="paprotki">W sali nr 6 gimnazjum nr 1 im. marszałka Józefa Piłsudskiego uczniowie NOTORYCZNIE podskubują kwiatki - kto wie? Może dlatego są takie marne?</p>
 <p class="paprotki">Zaistniały problem niestety rozrasta się, wręcz kwitnie niczym dobry interes - czy nim jest? Listków na łodyżkach zaczyna brakować także w innych salach, a nawet na szkolnych korytarzach. rośliny marnieją, a zamiast nich... uczniowie sadzą 5 groszy!</p>
 <p class="paprotki">Do czego dochodzi w dzisiejszych czasach? Czyżby Polska tak zbiedniała, że musimy sadzić pieniądze? A nie tylko paprotki na tym cierpią - a dusznych klasach nikt sam z siebie tlenu nie naprodukuje.</p>
