@@ -4,7 +4,7 @@ body {
 }
 .carousel-caption {
   background-color: rgba(0, 0, 25, 0.4);
-  border-radius: 10px
+  border-radius: 50px;
   padding: 10px;
 }
 .carousel-caption > h3 {
@@ -13,4 +13,8 @@ body {
 
 .carousel-caption > p {
   text-shadow: 2px 2px 2px rgba(0, 75, 0, 0.4);
+}
+
+.carousel {
+  padding-top: 50px;
 }

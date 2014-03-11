@@ -5,5 +5,13 @@ menu
 karuzela( Kasia
 element http://alejagwiazd.ijestfajnie.pl/assets/Kasia-carousel.png Kasiaintro
 )karuzela
+środek(
+jumbo(
+import Kasiapaprotki
+)jumbo
+jumbo(
+import Kasiawiersze
 wiersz Lolol
+)jumbo
+)środek
 koniec
