@@ -60,8 +60,14 @@ def parse(f):
             ret=ret+m.caroustart(line.split(" ")[1])
         if line.startswith(")karuzela"):
             ret=ret+m.carouend()
+        if line.startswith("galeria( "):
+            ret=ret+m.gallstart(line.split(" ")[1])
+        if line.startswith(")galeria"):
+            ret=ret+m.gallend()
+        if line.startswith("zdjęcie "):
+            ret=ret+m.gallment(line.split(" ")[1])
         if line.startswith("element "):
-            ret=ret+m.caroument(line.split(" ")[1], m.include(line.split(" ")[2][0:len(line.split(" ")[2])-1]))
+            ret=ret+m.caroument(line.split(" ")[1], m.include(line.split(" ")[2].strip()))
     return ret
 
 def printhelp():

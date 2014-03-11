@@ -23,22 +23,23 @@
 #
 
 from string import Template
-import socket
+import socket, time, datetime
 
 class CDNData(object):
     def __init__(self, Local):
         self.bootstrapcss = "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"
         self.bootstrapjs = "//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"
         self.jqueryjs = "//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"
+        self.galleryjs = "//cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.4.33/jquery.colorbox-min.js"
+        self.gallerycss = "//cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.4.33/example1/colorbox.min.css"
         if Local:
             self.bootstrapcss = "http:" + self.bootstrapcss
             self.bootstrapjs = "http:" + self.bootstrapjs
             self.jqueryjs = "http:" + self.jqueryjs
+            self.galleryjs = "http:" + self.galleryjs
+            self.gallerycss = "http:" + self.gallerycss
         self.commoncss = "css/_global.css"
         self.incassets = "assets/"
-        self.carouselmode = False
-        self.carouselelements = 0
-        self.carouselid = None
         
 class MPi(object):
     def __init__(self, Path):
@@ -57,7 +58,16 @@ class MPi(object):
                 self.stitle = line[6:len(line)-1]
         self.footnotes = ""
         self.cdn = CDNData(self.local)
+        self.carouselmode = False
+        self.carouselelements = 0
+        self.carouselid = None
+        self.gallerymode = False
+        self.galleryelements = 0
+        self.galleryid = None
+        self.galleryd = False
+        self.starttime = time.time()
     def start(self):
+        self.starttime = time.time()
         return "<!DOCTYPE html><html>"
     def title(self, Title):
         self.ptitle = Title
@@ -68,9 +78,10 @@ class MPi(object):
         <link rel="stylesheet" href="$bootstrapcss">
         <link rel="stylesheet" href="$commoncss">
         <link rel="stylesheet" href="$pagecss">
+        <link rel="stylesheet" href="$gallerycss">
         <script src="$jqueryjs"></script>
         <script src="$bootstrapjs"></script>
-        </head><body>""").substitute({'stitle':self.stitle,'commoncss':self.cdn.commoncss,'ptitle':self.ptitle,'bootstrapcss':self.cdn.bootstrapcss,'bootstrapjs':self.cdn.bootstrapjs,'jqueryjs':self.cdn.jqueryjs, 'pagecss':"css/" + self.ptitle + ".css"})
+        </head><body>""").substitute({'stitle':self.stitle,'commoncss':self.cdn.commoncss,'ptitle':self.ptitle,'bootstrapcss':self.cdn.bootstrapcss,'bootstrapjs':self.cdn.bootstrapjs,'jqueryjs':self.cdn.jqueryjs, 'pagecss':"css/" + self.ptitle + ".css", 'gallerycss': self.cdn.gallerycss})
     def include(self, Title, Br=False):
         fl = open(self.path + self.cdn.incassets + Title + ".inc", "r")
         fll = ""
@@ -88,7 +99,7 @@ class MPi(object):
         self.footnotes = self.footnotes + fll
         return Template("""<button data-toggle="modal" data-target="#modal_$title" class="btn btn-info"><span class="glyphicon glyphicon-book"></span> $title</button>""").substitute({'title':Title});
     def end(self):
-        rt = self.footnotes + "<footer>Powered by <a href=\"http://github.com/MPRZLabs/Ally\">Michcioperz's Ally language</a>. Compiled on %s.</footer></body></html>" % socket.gethostname()
+        rt = self.footnotes + "<footer>Powered by <a href=\"http://github.com/MPRZLabs/Ally\">Michcioperz's Ally language</a>. Brought to you by %s in %f seconds, compiled on %s.</footer></body></html>" % (socket.gethostname(), time.time()-self.starttime, datetime.datetime.utcnow().strftime("%c"))
         self.footnotes = ""
         return rt
     def contstart(self):
@@ -116,10 +127,27 @@ class MPi(object):
                 mn = mn+Template("""<li><a href="$title.html">$title</a></li>""").substitute({'title':page})
         mn = mn+"</ul></div></div></nav>"
         return mn
+    def gallstart(self, Id):
+        self.gallerymode = True
+        self.galleryelements = 0
+        self.galleryid = Id.strip()
+        return """<div class="row">"""
+    def gallment(self, Pic):
+        self.galleryelements = self.galleryelements + 1
+        return """<div class="col-xs-6 col-md-3"><a class="gallery-%s" href="%s" class="thumbnail"><img src="%s" class="img-responsive img-rounded"></a></div>"""%(self.galleryid, Pic, Pic)
+    def gallend(self):
+        gnd = "</div>"
+        if not self.galleryd:
+            self.footnotes = self.footnotes + """<script src="%s"></script>""" % self.cdn.galleryjs
+        self.footnotes = self.footnotes + """<script>$(document).ready(function(){$(".gallery-%s").colorbox({rel:'%s', transition:"elastic"});});</script>""" % (self.galleryid, self.galleryid)
+        self.gallerymode = False
+        self.galleryelements = 0
+        self.galleryid = None
+        return gnd
     def caroustart(self, Id):
         self.carouselmode = True
         self.carouselelements = 0
-        self.carouselid = Id
+        self.carouselid = Id.strip()
         return Template("""<div id="carousel-$cid" class="carousel slide" data-ride="carousel">
         <div class="carousel-inner">""").substitute({'cid':self.carouselid})
     def caroument(self, Pic, Imp=""):
@@ -127,7 +155,7 @@ class MPi(object):
         if Imp != "":
             Imp = """<div class="carousel-caption">"""+Imp+"</div>"
         if self.carouselelements == 1:
-            return Template("""<div class="item active"><img src="$image">$imdes</div>""").substitute({'image':Pic,'imdes':Imp})
+            return Template("""<div class="item active"><img src="$image" data-gallery>$imdes</div>""").substitute({'image':Pic,'imdes':Imp})
         else:
             return Template("""<div class="item"><img src="$image">$imdes</div>""").substitute({'image':Pic,'imdes':Imp})
     def carouend(self):
