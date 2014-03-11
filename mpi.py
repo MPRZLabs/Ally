@@ -99,7 +99,7 @@ class MPi(object):
         self.footnotes = self.footnotes + fll
         return Template("""<button data-toggle="modal" data-target="#modal_$title" class="btn btn-info"><span class="glyphicon glyphicon-book"></span> $title</button>""").substitute({'title':Title});
     def end(self):
-        rt = self.footnotes + "<footer>Powered by <a href=\"http://github.com/MPRZLabs/Ally\">Michcioperz's Ally language</a>. Brought to you by %s in %f seconds, compiled on %s.</footer></body></html>" % (socket.gethostname(), time.time()-self.starttime, datetime.datetime.utcnow().strftime("%c"))
+        rt = self.footnotes + "<footer>Powered by <a href=\"http://github.com/MPRZLabs/Ally\">Michcioperz's Ally language</a>. Brought to you by %s in %f seconds, compiled on %s UTC.</footer></body></html>" % (socket.gethostname(), time.time()-self.starttime, datetime.datetime.utcnow().strftime("%c"))
         self.footnotes = ""
         return rt
     def contstart(self):
