@@ -23,6 +23,7 @@
 #
 
 from string import Template
+import socket
 
 class CDNData(object):
     def __init__(self, Local):
@@ -87,7 +88,7 @@ class MPi(object):
         self.footnotes = self.footnotes + fll
         return Template("""<button data-toggle="modal" data-target="#modal_$title" class="btn btn-info"><span class="glyphicon glyphicon-book"></span> $title</button>""").substitute({'title':Title});
     def end(self):
-        rt = self.footnotes + "</body></html>"
+        rt = self.footnotes + "<footer>Powered by <a href=\"http://github.com/MPRZLabs/Ally\">Michcioperz's Ally language</a>. Compiled on %s.</footer></body></html>" % socket.gethostname()
         self.footnotes = ""
         return rt
     def contstart(self):
