@@ -6,8 +6,18 @@ karuzela( Kasia
 element http://alejagwiazd.ijestfajnie.pl/assets/Kasia-carousel.png Kasiaintro
 )karuzela
 środek(
+)środek
+środek(
 jumbo(
 import Kasiapaprotki
+)jumbo
+jumbo(
+galeria( Kasia
+zdjęcie http://awesomeness.openphoto.me/custom/201302/kp01-5297c9_960x180.jpg
+zdjęcie http://awesomeness.openphoto.me/custom/201302/kp02-46fb8c_960x180.jpg
+zdjęcie http://awesomeness.openphoto.me/custom/201302/kp03-7c4ae5_960x180.jpg
+zdjęcie http://awesomeness.openphoto.me/custom/201302/kp04-8e59db_960x180.jpg
+)galeria
 )jumbo
 jumbo(
 import Kasiawiersze
