@@ -67,12 +67,14 @@ class APRStart(AllyPageReactor):
     def getLineStart(self):
         return "start"
     def render(self, Page, Line):
+        gtl().debug("Starting file")
         return "<!DOCTYPE html><html>"
 
 class APRTitle(AllyPageReactor):
     def getLineStart(self):
         return "tytuł "
     def render(self, Page, Line):
+        gtl().debug("Defining title")
         title = Line[6:len(Line)-1]
         Page.title = title
         return ""
@@ -95,6 +97,7 @@ class APRNavbar(AllyPageReactor):
     def getLineStart(self):
         return "menu"
     def render(self, Page, Line):
+        gtl().debug("Inserting navbar template")
         mn = Template("""<nav class="navbar navbar-fixed-top navbar-default" role="navigation">
         <div class="container-fluid">
         <div class="navbar-header">
@@ -108,7 +111,9 @@ class APRNavbar(AllyPageReactor):
         <ul class="nav navbar-nav">""").substitute({'stitle':Page.site.config.title})
         for page in Page.site.config.menupages:
             if page != "index":
+                gtl().debug("Adding page %s to navbar" % page)
                 mn = mn+Template("""<li><a href="$title.html">$title</a></li>""").substitute({'title':page})
+        gtl().debug("Closing navbar")
         mn = mn+"</ul></div></div></nav>"
         return mn
 
@@ -159,6 +164,7 @@ class AllyPage(object):
         self.css = os.path.join(self.site.config.cdn['cssdir'], self.title+".css")
         self.site.reqasset(self.css)
     def link(self):
+        gtl().debug("Linking page content up")
         result = ""
         for f in self.stuff:
             result=result+f
@@ -171,7 +177,9 @@ class AllySimpleServer():
         SocketServer.TCPServer.allow_reuse_address = True
         self.httpd = SocketServer.TCPServer(("", self.port), self.handler)
         self.online = True
-        webbrowser.open("http://127.0.0.1:%i/"%self.port)
+        address = "http://127.0.0.1:%i/"%self.port
+        gtl().info("NOW ONLINE AT %s" % address)
+        webbrowser.open(address)
     def run(self):
         try:
             while self.online:
@@ -190,18 +198,25 @@ class AllySite(object):
         self.assets.append(Path)
     def render(self):
         if os.path.isdir(os.path.join(self.config.path, "_site")):
+            gtl().debug("Removing old _site dir")
             shutil.rmtree(os.path.join(self.config.path, "_site"))
+        gtl().debug("Making _site dir")
         os.mkdir(os.path.join(self.config.path, "_site"))
+        gtl().debug("Making assets dir")
         os.mkdir(os.path.join(self.config.path, "_site", self.config.cdn['cssdir']))
         parser = AllyPageParser()
         for f in self.files:
+            gtl().info("Building page %s" % f)
             p = AllyPage(f, self)
             parser.parse(p, f)
+            gtl().info("Saving page %s" % f)
             fl = open(os.path.join(self.config.path, "_site", os.path.basename(p.path)[0:len(os.path.basename(p.path))-5] + ".html"), "w")
             fl.write(p.link())
             fl.close()
         for a in self.assets:
+            gtl().debug("Copying file %s" % a)
             shutil.copy(a, os.path.join(self.config.path, "_site", self.config.cdn['cssdir']))
+        gtl().info("Done.")
             
 
 class AllyInterface(object):
