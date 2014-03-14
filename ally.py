@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from string import Template
-import logging, os, argparse, shutil, SocketServer, SimpleHTTPServer, random, webbrowser
+import logging, os, argparse, shutil, SocketServer, SimpleHTTPServer, random, webbrowser, socket, datetime, time
 
 logger = logging.getLogger("Ally")
 logger.setLevel(logging.INFO)
@@ -116,6 +116,116 @@ class APRNavbar(AllyPageReactor):
         gtl().debug("Closing navbar")
         mn = mn+"</ul></div></div></nav>"
         return mn
+        
+class APRCarouselStart(AllyPageReactor):
+    def getLineStart(self):
+        return "karuzela( "
+    def render(self, Page, Line):
+        gtl().debug("Starting a carousel")
+        Page.cfirst = True
+        return Template("""<div id="carousel-$cid" class="carousel slide" data-ride="carousel">
+        <div class="carousel-inner">""").substitute({'cid':Line.split(" ", 1)[1]})
+
+class APRCarouselPart(AllyPageReactor):
+    def getLineStart(self):
+        return "element "
+    def render(self, Page, Line):
+        img = Line.split(" ")[1]
+        txt = Line.split(" ")[2]
+        if txt != "":
+            txt = """<div class="carousel-caption">"""+Page.site.include(txt)+"</div>"
+        if Page.cfirst:
+            Page.cfirst = False
+            return Template("""<div class="item active"><img src="$image" data-gallery>$imdes</div>""").substitute({'image':img,'imdes':txt})
+        else:
+            return Template("""<div class="item"><img src="$image">$imdes</div>""").substitute({'image':img,'imdes':txt})
+
+class APRCarouselEnd(AllyPageReactor):
+    def getLineStart(self):
+        return ")karuzela"
+    def render(self, Page, Line):
+        gtl().debug("Closing a carousel")
+        return "</div></div>"
+
+class APRGalleryStart(AllyPageReactor):
+    def getLineStart(self):
+        return "galeria("
+    def render(self, Page, Line):
+        gtl().debug("Starting a gallery")
+        Page.gid = Line.split(" ", 1)[1]
+        return """<div class="row">"""
+
+class APRGalleryPart(AllyPageReactor):
+    def getLineStart(self):
+        return "zdjęcie "
+    def render(self, Page, Line):
+        Pic = Line.split(" ", 1)[1]
+        return """<div class="col-xs-6 col-md-3"><a class="gallery-%s" href="%s" class="thumbnail"><img src="%s" class="img-responsive img-rounded"></a></div>"""%(Page.gid.strip(), Pic.strip(), Pic.strip())
+
+class APRGalleryEnd(AllyPageReactor):
+    def getLineStart(self):
+        return ")galeria"
+    def render(self, Page, Line):
+        gtl().debug("Closing a gallery")
+        Page.footnote("""<script>$(document).ready(function(){$(".gallery-%s").colorbox({rel:'%s', transition:"elastic"});});</script>"""%(Page.gid.strip(), Page.gid.strip()))
+        return "</div>"
+
+class APREnd(AllyPageReactor):
+    def getLineStart(self):
+        return "koniec"
+    def render(self, Page, Line):
+        return "%s<footer>Powered by <a href=\"http://github.com/MPRZLabs/Ally\">Michcioperz's Ally language</a>. Brought to you by %s in %f seconds, compiled on %s UTC.</footer></body></html>" % (Page.deployfootnotes(),socket.gethostname(), time.time()-Page.starttime, datetime.datetime.utcnow().strftime("%c"))
+
+class APRContainerStart(AllyPageReactor):
+    def getLineStart(self):
+        return "środek("
+    def render(self, Page, Line):
+        return """<div class="container">"""
+
+class APRContainerEnd(AllyPageReactor):
+    def getLineStart(self):
+        return ")środek"
+    def render(self, Page, Line):
+        return "</div>"
+
+class APRJumbotronStart(AllyPageReactor):
+    def getLineStart(self):
+        return "jumbo("
+    def render(self, Page, Line):
+        return """<div class="jumbotron">"""
+
+class APRJumbotronEnd(AllyPageReactor):
+    def getLineStart(self):
+        return ")jumbo"
+    def render(self, Page, Line):
+        return "</div>"
+
+class APRImport(AllyPageReactor):
+    def getLineStart(self):
+        return "import "
+    def render(self, Page, Line):
+        t = Line.split(" ",1)[1]
+        return Page.site.include(t)
+
+class APRImportBr(AllyPageReactor):
+    def getLineStart(self):
+        return "import! "
+    def render(self, Page, Line):
+        t = Line.split(" ",1)[1]
+        return Page.site.include(t, True)
+
+class APRPoem(AllyPageReactor):
+    def getLineStart(self):
+        return "wiersz "
+    def render(self, Page, Line):
+        t = Line.split(" ",1)[1]
+        fl = open(os.path.join(Page.site.config.path, Page.site.config.cdn['cssdir'], t.strip() + ".poem"), "r")
+        fll = Template("""<div class="modal fade" id="modal_$title" tabindex="-1" role="dialog"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button><h4 class="modal-title"><span class="glyphicon glyphicon-book"></span> $title</h4></div><div class="modal-body">""").substitute({'title':t})
+        for line in fl:
+            fll = fll+line+"<br />"
+        fll = fll+"</div></div></div></div>"
+        Page.footnote(fll)
+        return Template("""<button data-toggle="modal" data-target="#modal_$title" class="btn btn-info"><span class="glyphicon glyphicon-book"></span> $title</button>""").substitute({'title':t});
 
 class AllyPageParser(object):
     def __init__(self):
@@ -125,11 +235,26 @@ class AllyPageParser(object):
         self.register(APRTitle())
         self.register(APRHeader())
         self.register(APRNavbar())
+        self.register(APRCarouselStart())
+        self.register(APRCarouselPart())
+        self.register(APRCarouselEnd())
+        self.register(APRGalleryStart())
+        self.register(APRGalleryPart())
+        self.register(APRGalleryEnd())
+        self.register(APRContainerStart())
+        self.register(APRContainerEnd())
+        self.register(APRJumbotronStart())
+        self.register(APRJumbotronEnd())
+        self.register(APRImport())
+        self.register(APRImportBr())
+#        self.register(APRPoem())
+        self.register(APREnd())
     def register(self, Reactor):
         self.reactors[Reactor.getLineStart()] = Reactor
         self.stats[Reactor.getLineStart()] = 0
     def parse(self, Page, Path):
         gtl().info("Parsing page %s" % Path)
+        Page.starttime = time.time()
         for s in open(Path, "r"):
             for r in self.reactors.values():
                 if s.strip().startswith(r.getLineStart()):
@@ -163,6 +288,15 @@ class AllyPage(object):
         self.stuff = []
         self.css = os.path.join(self.site.config.cdn['cssdir'], self.title+".css")
         self.site.reqasset(self.css)
+        self.cfirst = False
+        self.footnotes = ""
+        self.footnote("""<script src="%s"></script>""" % self.site.config.cdn['galleryjs'])
+    def footnote(self, ish):
+        self.footnotes = self.footnotes + ish
+    def deployfootnotes(self):
+        ftn = self.footnotes
+        self.footnotes = ""
+        return ftn
     def link(self):
         gtl().debug("Linking page content up")
         result = ""
@@ -193,6 +327,14 @@ class AllySite(object):
         self.files = Files
         self.assets = []
         self.reqasset(os.path.join(self.config.cdn['cssdir'],"_global.css"))
+    def include(self, Title, Br=False):
+        fl = open(os.path.join(self.config.path, self.config.cdn['cssdir'], Title.strip() + ".inc"), "r")
+        fll = ""
+        for line in fl:
+            fll = fll+line
+            if Br:
+                fll = fll+"<br />"
+        return fll
     def reqasset(self, Path):
         gtl().debug("Adding %s to requested assets" % Path)
         self.assets.append(Path)
