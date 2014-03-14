@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-import logging, os, argparse, sys, threading
+import logging, os, argparse
 
 logger = logging.getLogger("Ally")
 logger.setLevel(logging.INFO)
@@ -19,12 +19,52 @@ def get_logger_handler():
     return loggerh
 def gtl():
     return get_logger()
+
+class AllyConfigReactor(object):
+    def getLineStart(self):
+        return "#"
+    def do(self, Config, Line):
+        pass
+        
+class ACRPage(AllyConfigReactor):
+    def getLineStart(self):
+        return "strona "
+    def do(self, Config, Line):
+        page = Line[7:len(Line)-1]
+        gtl().debug("Adding page %s to menu" % page)
+        Config.menupages.append(page)
+
+class ACRTitle(AllyConfigReactor):
+    def getLineStart(self):
+        return "tytuł "
+    def do(self, Config, Line):
+        title = Line[6:len(Line)-1]
+        gtl().info("Setting site title: %s" % title)
+        Config.title = title
+        
+class AllyConfigParser(object):
+    def __init__(self):
+        self.reactors = {}
+        self.register(ACRPage())
+        self.register(ACRTitle())
+    def register(self, Reactor):
+        self.reactors[Reactor.getLineStart()] = Reactor
+    def parse(self, Config, Path):
+        gtl().info("Parsing config file")
+        for s in open(Path, "r"):
+            for r in self.reactors.values():
+                if s.strip().startswith(r.getLineStart()):
+                    r.do(Config, s)
     
 class AllyConfig(object):
     def __init__(self, Path):
         self.cdn = {}
         self.path = Path
         self.title = os.path.basename(Path)
+        self.menupages = []
+    def loadfromfile(self, Path):
+        if os.path.isfile(Path):
+            AllyConfigParser().parse(self, Path)
 
 class AllyPage(object):
     def __init__(self, Lines):
@@ -50,7 +90,9 @@ class AllySimpleServer():
             self.online = False
             
 class AllySite(object):
-    pass
+    def __init__(self, Config, Files):
+        self.config = Config
+        self.files = Files
 
 class AllyInterface(object):
     def new_argp(self):
@@ -80,7 +122,7 @@ class AllyInterface(object):
         if os.path.isfile(cfgpath):
             gtl().info("Config file found")
             gtl().debug("Config file path: %s" % cfgpath)
-            return open(cfgpath, "r")
+            return cfgpath
         else:
             gtl().warning("Config file not found. Using default config.")
             return None
@@ -107,7 +149,11 @@ class AllyInterface(object):
             return 1
         else:
             cfg = self.find_config(path)
-            files = self.find_files(path) 
+            config = AllyConfig(path)
+            if cfg != None:
+                config.loadfromfile(cfg)
+            files = self.find_files(path)
+            site = AllySite(config, files)
 
 if __name__ == '__main__':
     AllyInterface().main()
