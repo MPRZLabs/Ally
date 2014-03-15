@@ -155,12 +155,30 @@ class APRGalleryStart(AllyPageReactor):
         Page.gid = Line.split(" ", 1)[1]
         return """<div class="row">"""
 
+class APRGalleryPerson(AllyPageReactor):
+    def getLineStart(self):
+        return "osoba "
+    def render(self, Page, Line):
+        person = Line.split(" ",1)[1].strip()
+        avatar = os.path.join(Page.site.config.cdn['cssdir'], person + "-avatar.png")
+        Page.site.reqasset(avatar)
+        return """<div class="col-xs-6 col-md-4"><a href="%s.html" class="thumbnail"><img src="%s" class="img-responsive img-rounded"></a><h3>%s</h3></div>"""%(person, avatar, person)
+
 class APRGalleryPart(AllyPageReactor):
     def getLineStart(self):
         return "zdjęcie "
     def render(self, Page, Line):
         Pic = Line.split(" ", 1)[1]
         return """<div class="col-xs-6 col-md-3"><a class="gallery-%s" href="%s" class="thumbnail"><img src="%s" class="img-responsive img-rounded"></a></div>"""%(Page.gid.strip(), Pic.strip(), Pic.strip())
+
+class APRGalleryPartTrovebox(AllyPageReactor):
+    def getLineStart(self):
+        return "zdjęcie-trovebox "
+    def render(self, Page, Line):
+        TBid = Line.split(" ", 1)[1].strip()
+        trovepic = "http://awesomeness.openphoto.me/" + TBid + "_870x870.jpg"
+        trovenail = "http://awesomeness.openphoto.me/" + TBid + "_960x180.jpg"
+        return """<div class="col-xs-6 col-md-3"><a class="gallery-%s" href="%s" class="thumbnail"><img src="%s" class="img-responsive img-rounded"></a></div>"""%(Page.gid.strip(), trovepic, trovenail)
 
 class APRGalleryEnd(AllyPageReactor):
     def getLineStart(self):
@@ -227,6 +245,19 @@ class APRPoem(AllyPageReactor):
         Page.footnote(fll)
         return Template("""<button data-toggle="modal" data-target="#modal_$title" class="btn btn-info"><span class="glyphicon glyphicon-book"></span> $title</button>""").substitute({'title':t});
 
+class APRHTML(AllyPageReactor):
+    def getLineStart(self):
+        return "o_O "
+    def render(self, Page, Line):
+        return Line.split(" ",1)[1]
+
+class APRRequire(AllyPageReactor):
+    def getLineStart(self):
+        return "potrzebuję "
+    def render(self, Page, Line):
+        Page.site.reqasset(os.path.join(Page.site.config.cdn['cssdir'], Line.split(" ",1)[1].strip()))
+        return ""
+
 class AllyPageParser(object):
     def __init__(self):
         self.reactors = {}
@@ -247,7 +278,11 @@ class AllyPageParser(object):
         self.register(APRJumbotronEnd())
         self.register(APRImport())
         self.register(APRImportBr())
-#        self.register(APRPoem())
+        self.register(APRPoem())
+        self.register(APRHTML())
+        self.register(APRRequire())
+        self.register(APRGalleryPartTrovebox())
+        self.register(APRGalleryPerson())
         self.register(APREnd())
     def register(self, Reactor):
         self.reactors[Reactor.getLineStart()] = Reactor
@@ -398,11 +433,11 @@ class AllyInterface(object):
         files = []
         for f in os.listdir(Path):
             if f.endswith(".ally"):
-                gtl().debug("Found Ally file %s" % os.path.abspath(f))
-                files.append(os.path.abspath(f))
+                gtl().debug("Found Ally file %s" % os.path.abspath(os.path.join(Path,f)))
+                files.append(os.path.abspath(os.path.join(Path,f)))
             elif os.path.isdir(f):
                 for subf in self.find_files(f, True):
-                    files.append(subf)
+                    files.append(os.path.join(f,subf))
         if not CalledFromInside:
             gtl().info("Found %i Ally files" % len(files))
         return files
