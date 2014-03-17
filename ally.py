@@ -63,6 +63,9 @@ class AllyPageReactor(object):
     def render(self, Page, Line):
         return ""
 
+#class AllyPageComponent(object):
+#    def 
+
 class APRStart(AllyPageReactor):
     def getLineStart(self):
         return "start"
@@ -98,7 +101,7 @@ class APRNavbar(AllyPageReactor):
         return "menu"
     def render(self, Page, Line):
         gtl().debug("Inserting navbar template")
-        mn = Template("""<nav class="navbar navbar-fixed-top navbar-default" role="navigation">
+        mn = Template("""<nav class="navbar navbar-fixed-top navbar-inverse" role="navigation">
         <div class="container-fluid">
         <div class="navbar-header">
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#menumenumenu-collapse">
@@ -122,7 +125,8 @@ class APRCarouselStart(AllyPageReactor):
         return "karuzela( "
     def render(self, Page, Line):
         gtl().debug("Starting a carousel")
-        Page.cfirst = True
+        Page.cnm = 0
+        Page.cid = Line.split(" ", 1)[1]
         return Template("""<div id="carousel-$cid" class="carousel slide" data-ride="carousel">
         <div class="carousel-inner">""").substitute({'cid':Line.split(" ", 1)[1]})
 
@@ -130,12 +134,12 @@ class APRCarouselPart(AllyPageReactor):
     def getLineStart(self):
         return "element "
     def render(self, Page, Line):
+        Page.cnm = Page.cnm + 1
         img = Line.split(" ")[1]
         txt = Line.split(" ")[2]
         if txt != "":
             txt = """<div class="carousel-caption">"""+Page.site.include(txt)+"</div>"
-        if Page.cfirst:
-            Page.cfirst = False
+        if Page.cnm == 1:
             return Template("""<div class="item active"><img src="$image" data-gallery>$imdes</div>""").substitute({'image':img,'imdes':txt})
         else:
             return Template("""<div class="item"><img src="$image">$imdes</div>""").substitute({'image':img,'imdes':txt})
@@ -145,7 +149,18 @@ class APRCarouselEnd(AllyPageReactor):
         return ")karuzela"
     def render(self, Page, Line):
         gtl().debug("Closing a carousel")
-        return "</div></div>"
+        if Page.cnm > 1:
+            tckrs = """<a class="left carousel-control" href="#carousel-%s" data-slide="prev"><span class="glyphicon glyphicon-chevron-left"></span></a><a class="right carousel-control" href="#carousel-%s" data-slide="next"><span class="glyphicon glyphicon-chevron-right"></span></a>""" % (Page.cid, Page.cid)
+        else:
+            tckrs = ""
+        ttl = Page.cnm
+        cntrs = ""
+        while Page.cnm > 0:
+            cntrs = """<li data-target="#carousel-%s" data-slide-to="%i"></li>"""%(Page.cid, ttl - Page.cnm)+cntrs
+            Page.cnm = Page.cnm - 1
+        if cntrs != "":
+            cntrs = """<ol class="carousel-indicators">"""+cntrs+"</ol>"
+        return """</div>%s%s</div>""" % (cntrs, tckrs)
 
 class APRGalleryStart(AllyPageReactor):
     def getLineStart(self):
@@ -153,7 +168,7 @@ class APRGalleryStart(AllyPageReactor):
     def render(self, Page, Line):
         gtl().debug("Starting a gallery")
         Page.gid = Line.split(" ", 1)[1]
-        return """<div class="row">"""
+        return """<div class="row gallanonyme">"""
 
 class APRGalleryPerson(AllyPageReactor):
     def getLineStart(self):
@@ -162,23 +177,47 @@ class APRGalleryPerson(AllyPageReactor):
         person = Line.split(" ",1)[1].strip()
         avatar = os.path.join(Page.site.config.cdn['cssdir'], person + "-avatar.png")
         Page.site.reqasset(avatar)
-        return """<div class="col-xs-6 col-md-4"><a href="%s.html" class="thumbnail"><img src="%s" class="img-responsive img-rounded"></a><h3>%s</h3></div>"""%(person, avatar, person)
+        return """<a href="%s.html"><div class="col-xs-6 col-md-4"><div class="showcase-person"><img src="%s" class="img-responsive img-rounded"></div><h3>%s</h3></a></div>"""%(person, avatar, person)
+
+class AllyImageReactor(object):
+    def getLineStart(self):
+        return "#"
+    def render(self, Page, URL):
+        return ""
+
+class AIRDirect(object):
+    def getLineStart(self):
+        return "--"
+    def render(self, Page, URL):
+        return """<div class="col-xs-6 col-md-3 gallerian"><a class="gallery-%s" href="%s" class="thumbnail"><img src="%s" class="img-responsive img-rounded"></a></div>"""%(Page.gid.strip(), URL.strip(), URL.strip())
+
+class AIRTrovebox(object):
+    def getLineStart(self):
+        return "tb"
+    def render(self, Page, URL):
+        trovepic = "http://awesomeness.openphoto.me/" + URL + "_870x870.jpg"
+        trovenail = "http://awesomeness.openphoto.me/" + URL + "_960x180.jpg"
+        return """<div class="col-xs-6 col-md-3 gallerian"><a class="gallery-%s" href="%s" class="thumbnail"><img src="%s" class="img-responsive img-rounded"></a></div>"""%(Page.gid.strip(), trovepic, trovenail)
 
 class APRGalleryPart(AllyPageReactor):
+    def __init__(self):
+        self.reactors = {}
+        self.stats = {}
+        self.register(AIRDirect())
+        self.register(AIRTrovebox())
+    def register(self, Reactor):
+        self.reactors[Reactor.getLineStart()] = Reactor
+        self.stats[Reactor.getLineStart()] = 0
     def getLineStart(self):
         return "zdjęcie "
     def render(self, Page, Line):
-        Pic = Line.split(" ", 1)[1]
-        return """<div class="col-xs-6 col-md-3"><a class="gallery-%s" href="%s" class="thumbnail"><img src="%s" class="img-responsive img-rounded"></a></div>"""%(Page.gid.strip(), Pic.strip(), Pic.strip())
-
-class APRGalleryPartTrovebox(AllyPageReactor):
-    def getLineStart(self):
-        return "zdjęcie-trovebox "
-    def render(self, Page, Line):
-        TBid = Line.split(" ", 1)[1].strip()
-        trovepic = "http://awesomeness.openphoto.me/" + TBid + "_870x870.jpg"
-        trovenail = "http://awesomeness.openphoto.me/" + TBid + "_960x180.jpg"
-        return """<div class="col-xs-6 col-md-3"><a class="gallery-%s" href="%s" class="thumbnail"><img src="%s" class="img-responsive img-rounded"></a></div>"""%(Page.gid.strip(), trovepic, trovenail)
+        Rea = Line.split(" ", 2)[1]
+        Pic = Line.split(" ", 2)[2]
+        for r in self.reactors.values():
+            if Rea.strip().startswith(r.getLineStart()):
+                gtl().debug("Embedding image %s with %s" % (Pic.strip(), r.__class__.__name__))
+                self.stats[r.getLineStart()] = self.stats[r.getLineStart()] + 1
+                return r.render(Page, Pic)        
 
 class APRGalleryEnd(AllyPageReactor):
     def getLineStart(self):
@@ -258,6 +297,44 @@ class APRRequire(AllyPageReactor):
         Page.site.reqasset(os.path.join(Page.site.config.cdn['cssdir'], Line.split(" ",1)[1].strip()))
         return ""
 
+class AllyVideoReactor(object):
+    def getLineStart(self):
+        return "#"
+    def render(self, URL):
+        return ""
+
+class AVRYouTube(AllyVideoReactor):
+    def getLineStart(self):
+        return "yt"
+    def render(self, URL):
+        return """<iframe class="youtube-player" type="text/html" width="640" height="385" src="//www.youtube.com/embed/%s" allowfullscreen frameborder="0"></iframe""" % URL
+
+class AVRPopcorn(AllyVideoReactor):
+    def getLineStart(self):
+        return "popcorn"
+    def render(self, URL):
+        return """<iframe type="text/html" width="640" height="385" src="//popcorn.webmadecontent.org/%s_" allowfullscreen frameborder="0"></iframe>""" % URL
+
+class APRVideo(AllyPageReactor):
+    def __init__(self):
+        self.reactors = {}
+        self.stats = {}
+        self.register(AVRYouTube())
+        self.register(AVRPopcorn())
+    def register(self, Reactor):
+        self.reactors[Reactor.getLineStart()] = Reactor
+        self.stats[Reactor.getLineStart()] = 0
+    def getLineStart(self):
+        return "wideo "
+    def render(self, Page, Line):
+        t = Line.split(" ",2)[1]
+        v = Line.split(" ",2)[2]
+        for r in self.reactors.values():
+            if t.strip().startswith(r.getLineStart()):
+                gtl().debug("Embedding video %s with %s" % (v.strip(), r.__class__.__name__))
+                self.stats[r.getLineStart()] = self.stats[r.getLineStart()] + 1
+                return r.render(v)
+
 class AllyPageParser(object):
     def __init__(self):
         self.reactors = {}
@@ -281,9 +358,9 @@ class AllyPageParser(object):
         self.register(APRPoem())
         self.register(APRHTML())
         self.register(APRRequire())
-        self.register(APRGalleryPartTrovebox())
         self.register(APRGalleryPerson())
         self.register(APREnd())
+        self.register(APRVideo())
     def register(self, Reactor):
         self.reactors[Reactor.getLineStart()] = Reactor
         self.stats[Reactor.getLineStart()] = 0
