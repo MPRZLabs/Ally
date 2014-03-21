@@ -82,19 +82,37 @@ class APRTitle(AllyPageReactor):
         Page.title = title
         return ""
 
+class APRDescription(AllyPageReactor):
+    def getLineStart(self):
+        return "opis "
+    def render(self, Page, Line):
+        gtl().debug("Defining description")
+        description = Line[5:len(Line)-1].strip()
+        Page.description = description
+        return ""
+
 class APRHeader(AllyPageReactor):
     def getLineStart(self):
         return "góra"
     def render(self, Page, Line):
         gtl().debug("Building header")
-        return Template("""<head><meta charset="UTF-8"><title>$ptitle | $stitle</title>
+        try:
+            Page.description
+        except AttributeError:
+            desctag = ""
+        except IndexError:
+            desctag = ""
+        else:
+            desctag = """<meta name="description" content="%s">"""%Page.description
+            
+        return Template("""<head><meta charset="UTF-8"><title>$ptitle | $stitle</title>$description
         <link rel="stylesheet" href="$bootstrapcss">
         <link rel="stylesheet" href="$sitecss">
         <link rel="stylesheet" href="$pagecss">
         <link rel="stylesheet" href="$gallerycss">
         <script src="$jqueryjs"></script>
         <script src="$bootstrapjs"></script>
-        </head><body>""").substitute({'ptitle':Page.title, 'stitle':Page.site.config.title, 'bootstrapcss':Page.site.config.cdn['bootstrapcss'],'sitecss':Page.site.config.cdn['sitecss'],'pagecss':Page.css,'gallerycss':Page.site.config.cdn['gallerycss'],'bootstrapjs':Page.site.config.cdn['bootstrapjs'],'jqueryjs':Page.site.config.cdn['jqueryjs']})
+        </head><body>""").substitute({'ptitle':Page.title, 'description':desctag, 'stitle':Page.site.config.title, 'bootstrapcss':Page.site.config.cdn['bootstrapcss'],'sitecss':Page.site.config.cdn['sitecss'],'pagecss':Page.css,'gallerycss':Page.site.config.cdn['gallerycss'],'bootstrapjs':Page.site.config.cdn['bootstrapjs'],'jqueryjs':Page.site.config.cdn['jqueryjs']})
 
 class APRNavbar(AllyPageReactor):
     def getLineStart(self):
@@ -126,9 +144,9 @@ class APRCarouselStart(AllyPageReactor):
     def render(self, Page, Line):
         gtl().debug("Starting a carousel")
         Page.cnm = 0
-        Page.cid = Line.split(" ", 1)[1]
-        return Template("""<div id="carousel-$cid" class="carousel slide" data-ride="carousel">
-        <div class="carousel-inner">""").substitute({'cid':Line.split(" ", 1)[1]})
+        Page.cid = Line.split(" ", 1)[1].strip()
+        return Template("""<div id="$cid-carousel" class="carousel slide" data-interval="2000" data-ride="carousel">
+        <div class="carousel-inner">""").substitute({'cid':Page.cid})
 
 class APRCarouselPart(AllyPageReactor):
     def getLineStart(self):
@@ -136,9 +154,12 @@ class APRCarouselPart(AllyPageReactor):
     def render(self, Page, Line):
         Page.cnm = Page.cnm + 1
         img = Line.split(" ")[1]
-        txt = Line.split(" ")[2]
-        if txt != "":
-            txt = """<div class="carousel-caption">"""+Page.site.include(txt)+"</div>"
+        try:
+            txt = Line.split(" ")[2]
+            if txt != "":
+                txt = """<div class="carousel-caption">"""+Page.site.include(txt)+"</div>"
+        except IndexError:
+            txt = ""
         if Page.cnm == 1:
             return Template("""<div class="item active"><img src="$image" data-gallery>$imdes</div>""").substitute({'image':img,'imdes':txt})
         else:
@@ -150,14 +171,15 @@ class APRCarouselEnd(AllyPageReactor):
     def render(self, Page, Line):
         gtl().debug("Closing a carousel")
         if Page.cnm > 1:
-            tckrs = """<a class="left carousel-control" href="#carousel-%s" data-slide="prev"><span class="glyphicon glyphicon-chevron-left"></span></a><a class="right carousel-control" href="#carousel-%s" data-slide="next"><span class="glyphicon glyphicon-chevron-right"></span></a>""" % (Page.cid, Page.cid)
+            tckrs = """<a class="left carousel-control" href="#%s-carousel" data-slide="prev"><span class="glyphicon glyphicon-chevron-left"></span></a><a class="right carousel-control" href="#%s-carousel" data-slide="next"><span class="glyphicon glyphicon-chevron-right"></span></a>""" % (Page.cid, Page.cid)
         else:
             tckrs = ""
         ttl = Page.cnm
         cntrs = ""
         while Page.cnm > 0:
-            cntrs = """<li data-target="#carousel-%s" data-slide-to="%i"></li>"""%(Page.cid, ttl - Page.cnm)+cntrs
+            ctr = Page.cnm
             Page.cnm = Page.cnm - 1
+            cntrs = """<li data-target="#%s-carousel" data-slide-to="%i"></li>"""%(Page.cid, ctr - 1)+cntrs
         if cntrs != "":
             cntrs = """<ol class="carousel-indicators">"""+cntrs+"</ol>"
         return """</div>%s%s</div>""" % (cntrs, tckrs)
@@ -175,7 +197,7 @@ class APRGalleryPerson(AllyPageReactor):
         return "osoba "
     def render(self, Page, Line):
         person = Line.split(" ",1)[1].strip()
-        avatar = os.path.join(Page.site.config.cdn['cssdir'], person + "-avatar.png")
+        avatar = os.path.join(Page.site.config.cdn['cssdir'], person + "-avatar.jpg")
         Page.site.reqasset(avatar)
         return """<a href="%s.html"><div class="col-xs-6 col-md-4"><div class="showcase-person"><img src="%s" class="img-responsive img-rounded"></div><h3>%s</h3></a></div>"""%(person, avatar, person)
 
@@ -315,12 +337,19 @@ class AVRPopcorn(AllyVideoReactor):
     def render(self, URL):
         return """<iframe type="text/html" width="640" height="385" src="//popcorn.webmadecontent.org/%s_" allowfullscreen frameborder="0"></iframe>""" % URL
 
+class AVRIframe(AllyVideoReactor):
+    def getLineStart(self):
+        return "iframe"
+    def render(self, URL):
+        return """<iframe type="text/html" width="640" height="385" src="//%s" allowfullscreen frameborder="0"></iframe>""" % URL
+
 class APRVideo(AllyPageReactor):
     def __init__(self):
         self.reactors = {}
         self.stats = {}
         self.register(AVRYouTube())
         self.register(AVRPopcorn())
+        self.register(AVRIframe())
     def register(self, Reactor):
         self.reactors[Reactor.getLineStart()] = Reactor
         self.stats[Reactor.getLineStart()] = 0
@@ -341,6 +370,7 @@ class AllyPageParser(object):
         self.stats = {}
         self.register(APRStart())
         self.register(APRTitle())
+        self.register(APRDescription())
         self.register(APRHeader())
         self.register(APRNavbar())
         self.register(APRCarouselStart())
