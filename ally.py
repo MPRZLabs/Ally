@@ -119,21 +119,21 @@ class APRNavbar(AllyPageReactor):
         return "menu"
     def render(self, Page, Line):
         gtl().debug("Inserting navbar template")
-        mn = Template("""<nav class="navbar navbar-fixed-top navbar-inverse" role="navigation">
+        mn = Template("""<nav class="navbar navbar-static-top navbar-inverse" role="navigation">
         <div class="container-fluid">
         <div class="navbar-header">
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#menumenumenu-collapse">
         <span class="sr-only">Toggle navigation</span>
         <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="index.html">$stitle</a>
+        <a class="navbar-brand" href="/">$stitle</a>
         </div>
         <div class="collapse navbar-collapse" id="menumenumenu-collapse">
         <ul class="nav navbar-nav">""").substitute({'stitle':Page.site.config.title})
         for page in Page.site.config.menupages:
             if page != "index":
                 gtl().debug("Adding page %s to navbar" % page)
-                mn = mn+Template("""<li><a href="$title.html">$title</a></li>""").substitute({'title':page})
+                mn = mn+Template("""<li><a href="/$title">$title</a></li>""").substitute({'title':page})
         gtl().debug("Closing navbar")
         mn = mn+"</ul></div></div></nav>"
         return mn
@@ -199,7 +199,7 @@ class APRGalleryPerson(AllyPageReactor):
         person = Line.split(" ",1)[1].strip()
         avatar = os.path.join(Page.site.config.cdn['cssdir'], person + "-avatar.jpg")
         Page.site.reqasset(avatar)
-        return """<a href="%s.html"><div class="col-xs-6 col-md-4"><div class="showcase-person"><img src="%s" class="img-responsive img-rounded"></div><h3>%s</h3></a></div>"""%(person, avatar, person)
+        return """<a href="/%s"><div class="col-xs-6 col-md-4"><div class="showcase-person"><img src="%s" class="img-responsive img-rounded"></div><h3>%s</h3></a></div>"""%(person, avatar, person)
 
 class AllyImageReactor(object):
     def getLineStart(self):
@@ -413,7 +413,7 @@ class AllyConfig(object):
         self.cdn['galleryjs'] = "//cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.4.33/jquery.colorbox-min.js"
         self.cdn['gallerycss'] = "//cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.4.33/example1/colorbox.min.css"
         self.cdn['cssdir'] = "assets"
-        self.cdn['sitecss'] = os.path.join("assets", "_global.css")
+        self.cdn['sitecss'] = os.path.join("/","assets", "_global.css")
         self.path = Path
         self.title = os.path.basename(Path)
         self.menupages = []
@@ -494,7 +494,13 @@ class AllySite(object):
             p = AllyPage(f, self)
             parser.parse(p, f)
             gtl().info("Saving page %s" % f)
-            fl = open(os.path.join(self.config.path, "_site", os.path.basename(p.path)[0:len(os.path.basename(p.path))-5] + ".html"), "w")
+            pth = os.path.basename(p.path)[0:len(os.path.basename(p.path))-5]
+            fl = None
+            if pth != "index":
+                os.mkdir(os.path.join(self.config.path, "_site", pth))
+                fl = open(os.path.join(self.config.path, "_site", pth ,"index.html"), "w")
+            else:
+                fl = open(os.path.join(self.config.path, "_site", "index.html"), "w")
             fl.write(p.link())
             fl.close()
         for a in self.assets:
