@@ -499,10 +499,16 @@ class AllySite(object):
             if pth != "index":
                 os.mkdir(os.path.join(self.config.path, "_site", pth))
                 fl = open(os.path.join(self.config.path, "_site", pth ,"index.html"), "w")
+                fl.write(p.link())
+                fl.close()
+                os.mkdir(os.path.join(self.config.path, "_site", pth + ".html"))
+                fl = open(os.path.join(self.config.path, "_site", pth + ".html" ,"index.html"), "w")
+                fl.write(p.link())
+                fl.close()
             else:
                 fl = open(os.path.join(self.config.path, "_site", "index.html"), "w")
-            fl.write(p.link())
-            fl.close()
+                fl.write(p.link())
+                fl.close()
         for a in self.assets:
             gtl().debug("Copying file %s" % a)
             shutil.copy(a, os.path.join(self.config.path, "_site", self.config.cdn['cssdir']))
