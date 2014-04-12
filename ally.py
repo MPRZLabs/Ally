@@ -1,8 +1,8 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 from string import Template
-import logging, os, argparse, shutil, SocketServer, SimpleHTTPServer, random, webbrowser, socket, datetime, time
+import logging, os, argparse, shutil, socketserver, http.server, random, webbrowser, socket, datetime, time
 
 logger = logging.getLogger("Ally")
 logger.setLevel(logging.INFO)
@@ -53,7 +53,7 @@ class AllyConfigParser(object):
     def parse(self, Config, Path):
         gtl().info("Parsing config file")
         for s in open(Path, "r"):
-            for r in self.reactors.values():
+            for r in list(self.reactors.values()):
                 if s.strip().startswith(r.getLineStart()):
                     r.do(Config, s)
     
@@ -235,7 +235,7 @@ class APRGalleryPart(AllyPageReactor):
     def render(self, Page, Line):
         Rea = Line.split(" ", 2)[1]
         Pic = Line.split(" ", 2)[2]
-        for r in self.reactors.values():
+        for r in list(self.reactors.values()):
             if Rea.strip().startswith(r.getLineStart()):
                 gtl().debug("Embedding image %s with %s" % (Pic.strip(), r.__class__.__name__))
                 self.stats[r.getLineStart()] = self.stats[r.getLineStart()] + 1
@@ -358,7 +358,7 @@ class APRVideo(AllyPageReactor):
     def render(self, Page, Line):
         t = Line.split(" ",2)[1]
         v = Line.split(" ",2)[2]
-        for r in self.reactors.values():
+        for r in list(self.reactors.values()):
             if t.strip().startswith(r.getLineStart()):
                 gtl().debug("Embedding video %s with %s" % (v.strip(), r.__class__.__name__))
                 self.stats[r.getLineStart()] = self.stats[r.getLineStart()] + 1
@@ -398,7 +398,7 @@ class AllyPageParser(object):
         gtl().info("Parsing page %s" % Path)
         Page.starttime = time.time()
         for s in open(Path, "r"):
-            for r in self.reactors.values():
+            for r in list(self.reactors.values()):
                 if s.strip().startswith(r.getLineStart()):
                     gtl().debug("Parsing %s with %s" % (s.strip(), r.__class__.__name__))
                     self.stats[r.getLineStart()] = self.stats[r.getLineStart()] + 1
@@ -449,9 +449,9 @@ class AllyPage(object):
 class AllySimpleServer():
     def __init__(self, Port=random.randint(8000,9000)):
         self.port = Port
-        self.handler = SimpleHTTPServer.SimpleHTTPRequestHandler
-        SocketServer.TCPServer.allow_reuse_address = True
-        self.httpd = SocketServer.TCPServer(("", self.port), self.handler)
+        self.handler = http.server.SimpleHTTPRequestHandler
+        socketserver.TCPServer.allow_reuse_address = True
+        self.httpd = socketserver.TCPServer(("", self.port), self.handler)
         self.online = True
         address = "http://127.0.0.1:%i/"%self.port
         gtl().info("NOW ONLINE AT %s" % address)
@@ -524,7 +524,7 @@ class AllyInterface(object):
         parser.add_argument('--version', help="print version and exit", action="version", version='%(prog)s 2.0')
         return parser
     def serve(self, Directory):
-        olddir = os.getcwdu()
+        olddir = os.getcwd()
         os.chdir(Directory)
         AllySimpleServer().run()
         os.chdir(olddir)
