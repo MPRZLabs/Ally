@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Ally</title>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="js/jquery-1.10.2.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.10.4.custom.min.js"></script>
+    <link rel="stylesheet" href="css/trontastic/jquery-ui-1.10.4.custom.min.css">
+    <style>
+      .window {
+        width: 400px;
+        height: 300px;
+        padding: 0.5em;
+      }
+      #drag1 {
+        position: absolute;
+        top: 30px;
+        left:30px;
+      }
+      #drag2 {
+        position: absolute;
+        top: 370px;
+        left: 25px;
+      }
+      #drag3 {
+        position: absolute;
+        top: 195px;
+        left:500px;
+      }
+      #drag4 {
+        position: absolute;
+        top: 30px;
+        left:930px;
+      }
+      #drag5 {
+        position: absolute;
+        top: 380px;
+        left:940px;
+      }
+    </style>
+    <script type="text/javascript">
+      $(function() {
+        $("#drag1").draggable({ scroll: true }).resizable();
+        $("#drag2").draggable({ scroll: true }).resizable();
+        $("#drag3").draggable({ scroll: true }).resizable();
+        $("#drag4").draggable({ scroll: true }).resizable();
+        $("#drag5").draggable({ scroll: true }).resizable();
+      });
+    </script>
+  </head>
+  <body>
+    <div class="window ui-widget-content" id="drag1" title="index.ally">
+      <p>index.ally</p>
+      <iframe src="http://pastebin.com/embed_iframe.php?i=z3e6EsNd" style="border:none;width:100%;height:80%;"></iframe>
+    </div>
+    <div class="window ui-widget-content" id="drag2" title="ally.py">
+      <p>ally.py</p>
+      <iframe src="http://pastebin.com/embed_iframe.php?i=25qJZtg9" style="border:none;width:100%;height:80%;"></iframe>
+    </div>
+    <div class="window ui-widget-content" id="drag3" title="xterm">
+      <p>xterm</p>
+      
+    </div>
+    <div class="window ui-widget-content" id="drag4" title="index.html">
+      <p>index.html</p>
+      <iframe src="http://pastebin.com/embed_iframe.php?i=7b9DVdUb" style="border:none;width:100%;height:80%;"></iframe>
+    </div>
+    <div class="window ui-widget-content" id="drag5" title="xlinks">
+      <p>xlinks</p>
+      <iframe src="http://alejagwiazd.ijestfajnie.pl" style="width:100%; height:80%;"></iframe>
+    </div>
+  </body>
+</html>
