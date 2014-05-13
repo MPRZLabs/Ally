@@ -367,33 +367,41 @@ class APRVideo(AllyPageReactor):
 class AllyPageParser(object):
     def __init__(self):
         self.reactors = {}
+        self.validators = []
         self.stats = {}
-        self.register(APRStart())
-        self.register(APRTitle())
-        self.register(APRDescription())
-        self.register(APRHeader())
-        self.register(APRNavbar())
-        self.register(APRCarouselStart())
-        self.register(APRCarouselPart())
-        self.register(APRCarouselEnd())
-        self.register(APRGalleryStart())
-        self.register(APRGalleryPart())
-        self.register(APRGalleryEnd())
-        self.register(APRContainerStart())
-        self.register(APRContainerEnd())
-        self.register(APRJumbotronStart())
-        self.register(APRJumbotronEnd())
-        self.register(APRImport())
-        self.register(APRImportBr())
-        self.register(APRPoem())
-        self.register(APRHTML())
-        self.register(APRRequire())
-        self.register(APRGalleryPerson())
-        self.register(APREnd())
-        self.register(APRVideo())
-    def register(self, Reactor):
+        self.register_reactor(APRStart())
+        self.register_reactor(APRTitle())
+        self.register_reactor(APRDescription())
+        self.register_reactor(APRHeader())
+        self.register_reactor(APRNavbar())
+        self.register_reactor(APRCarouselStart())
+        self.register_reactor(APRCarouselPart())
+        self.register_reactor(APRCarouselEnd())
+        self.register_reactor(APRGalleryStart())
+        self.register_reactor(APRGalleryPart())
+        self.register_reactor(APRGalleryEnd())
+        self.register_reactor(APRContainerStart())
+        self.register_reactor(APRContainerEnd())
+        self.register_reactor(APRJumbotronStart())
+        self.register_reactor(APRJumbotronEnd())
+        self.register_reactor(APRImport())
+        self.register_reactor(APRImportBr())
+        self.register_reactor(APRPoem())
+        self.register_reactor(APRHTML())
+        self.register_reactor(APRRequire())
+        self.register_reactor(APRGalleryPerson())
+        self.register_reactor(APREnd())
+        self.register_reactor(APRVideo())
+        self.register_validator(APVStartEnd())
+        self.register_validator(APVContainer())
+        self.register_validator(APVJumbotron())
+        self.register_validator(APVGallery())
+        self.register_validator(APVCarousel())
+    def register_reactor(self, Reactor):
         self.reactors[Reactor.getLineStart()] = Reactor
         self.stats[Reactor.getLineStart()] = 0
+    def register_validator(self, Validator):
+        self.validators.append(Validator)
     def parse(self, Page, Path):
         gtl().info("Parsing page %s" % Path)
         Page.starttime = time.time()
@@ -403,7 +411,49 @@ class AllyPageParser(object):
                     gtl().debug("Parsing %s with %s" % (s.strip(), r.__class__.__name__))
                     self.stats[r.getLineStart()] = self.stats[r.getLineStart()] + 1
                     Page.stuff.append(r.render(Page, s))
+        for v in self.validators:
+            if v.validate(self):
+                gtl().debug("Page %s validated successfully with %s" % (Path, v))
+            else:
+                gtl().error("Error validating page %s with validator %s" % (Path, v))
 
+class AllyPageValidator(object):
+    def startAPR(self):
+        return None
+    def endAPR(self):
+        return None
+    def validate(self, APP):
+        return APP.stats[self.startAPR().getLineStart()] == APP.stats[self.endAPR().getLineStart()]
+
+class APVStartEnd(AllyPageValidator):
+    def startAPR(self):
+        return APRStart()
+    def endAPR(self):
+        return APREnd()
+
+class APVContainer(AllyPageValidator):
+    def startAPR(self):
+        return APRContainerStart()
+    def endAPR(self):
+        return APRContainerEnd()
+
+class APVJumbotron(AllyPageValidator):
+    def startAPR(self):
+        return APRJumbotronStart()
+    def endAPR(self):
+        return APRJumbotronEnd()
+
+class APVGallery(AllyPageValidator):
+    def startAPR(self):
+        return APRGalleryStart()
+    def endAPR(self):
+        return APRGalleryEnd()
+
+class APVCarousel(AllyPageValidator):
+    def startAPR(self):
+        return APRCarouselStart()
+    def endAPR(self):
+        return APRCarouselEnd()
 class AllyConfig(object):
     def __init__(self, Path):
         self.cdn = {}
@@ -488,8 +538,8 @@ class AllySite(object):
         os.mkdir(os.path.join(self.config.path, "_site"))
         gtl().debug("Making assets dir")
         os.mkdir(os.path.join(self.config.path, "_site", self.config.cdn['cssdir']))
-        parser = AllyPageParser()
         for f in self.files:
+            parser = AllyPageParser()
             gtl().info("Building page %s" % f)
             p = AllyPage(f, self)
             parser.parse(p, f)
