@@ -329,7 +329,7 @@ class AVRYouTube(AllyVideoReactor):
     def getLineStart(self):
         return "yt"
     def render(self, URL):
-        return """<iframe class="youtube-player" type="text/html" width="640" height="385" src="//www.youtube.com/embed/%s" allowfullscreen frameborder="0"></iframe""" % URL
+        return """<iframe class="youtube-player" type="text/html" width="640" height="385" src="//www.youtube.com/embed/%s" allowfullscreen frameborder="0"></iframe>""" % URL
 
 class AVRPopcorn(AllyVideoReactor):
     def getLineStart(self):
