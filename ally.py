@@ -410,7 +410,7 @@ class AllyPageParser(object):
                 if s.strip().startswith(r.getLineStart()):
                     gtl().debug("Parsing %s with %s" % (s.strip(), r.__class__.__name__))
                     self.stats[r.getLineStart()] = self.stats[r.getLineStart()] + 1
-                    Page.stuff.append(r.render(Page, s))
+                    Page.stuff.append(r.render(Page, s.strip()))
         for v in self.validators:
             if v.validate(self):
                 gtl().debug("Page %s validated successfully with %s" % (Path, v))
